@@ -15,25 +15,28 @@
 -define(DEFAULT_INTERVAL, 5000).
 -define(DEFAULT_SAMPLE_TYPE, uniform).
 
+% {decentralized_counters, true} is supported since Erlang 23+
+% In Erlang 25+ it's possible to use {write_concurrency, auto} as a replacement
+% for both {write_concurrency, true}, {decentralized_counters, true} options.
+% See https://www.erlang.org/doc/man/ets.html#new-2 for more info.
+%
+-define(ETS_OPTS, [{write_concurrency, true}, {decentralized_counters, true}, public]).
+
 -record(spiral, {
-          tid = folsom_metrics_histogram_ets:new(folsom_spiral,
-                                                 [set,
-                                                  {write_concurrency, true},
-                                                  public]),
+          tid = folsom_metrics_histogram_ets:new(folsom_spiral, [set] ++ ?ETS_OPTS),
           server
          }).
 
 -record(slide, {
           window = ?DEFAULT_SLIDING_WINDOW,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_slide,
-                                                       [duplicate_bag, {write_concurrency, true}, public]),
+          reservoir = folsom_metrics_histogram_ets:new(folsom_slide, [duplicate_bag] ++ ?ETS_OPTS),
           server
          }).
 
 -record(slide_uniform, {
           window = ?DEFAULT_SLIDING_WINDOW,
           size = ?DEFAULT_SIZE,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_slide_uniform,[set, {write_concurrency, true}, public]),
+          reservoir = folsom_metrics_histogram_ets:new(folsom_slide_uniform,[set] ++ ?ETS_OPTS),
           seed = rand:seed_s(exsplus, os:timestamp()),
           server
          }).
@@ -41,7 +44,7 @@
 -record(uniform, {
           size = ?DEFAULT_SIZE,
           n = 1,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_uniform,[set, {write_concurrency, true}, public]),
+          reservoir = folsom_metrics_histogram_ets:new(folsom_uniform,[set] ++ ?ETS_OPTS),
           seed = rand:seed_s(exsplus, os:timestamp())
          }).
 
@@ -52,19 +55,19 @@
           size = ?DEFAULT_SIZE,
           seed = rand:seed_s(exsplus, os:timestamp()),
           n = 1,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_exdec,[ordered_set, {write_concurrency, true}, public])
+          reservoir = folsom_metrics_histogram_ets:new(folsom_exdec,[ordered_set] ++ ?ETS_OPTS)
          }).
 
 -record(none, {
           size = ?DEFAULT_SIZE,
           n = 1,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_none,[ordered_set, {write_concurrency, true}, public])
+          reservoir = folsom_metrics_histogram_ets:new(folsom_none,[ordered_set] ++ ?ETS_OPTS)
          }).
 
 -record(slide_sorted, {
           size = ?DEFAULT_SIZE,
           n = 0,
-          reservoir = folsom_metrics_histogram_ets:new(folsom_slide_sorted,[ordered_set, {write_concurrency, true}, public])
+          reservoir = folsom_metrics_histogram_ets:new(folsom_slide_sorted,[ordered_set] ++ ?ETS_OPTS)
          }).
 
 -record(histogram, {
